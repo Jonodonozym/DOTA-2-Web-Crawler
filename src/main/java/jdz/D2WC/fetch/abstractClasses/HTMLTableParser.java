@@ -1,5 +1,5 @@
 
-package jdz.D2WC.dataIO.fetch;
+package jdz.D2WC.fetch.abstractClasses;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -12,14 +12,14 @@ import org.jsoup.select.Elements;
 public abstract class HTMLTableParser<E> extends HTMLDocumentParser {
 	public List<E> getAll(Object... state) throws IOException {
 		List<E> elements = new ArrayList<>();
-
+		
 		Document doc = getDocument(getPage(state));
 
 		getTableRows(doc).forEach((row) -> {
 			try {
 				elements.add(extractFromRow(row.select("td")));
 			}
-			catch (Exception ex) {}
+			catch (Exception ex) {ex.printStackTrace();}
 		});
 
 		return elements;
@@ -27,9 +27,9 @@ public abstract class HTMLTableParser<E> extends HTMLDocumentParser {
 
 	protected abstract String getPage(Object... state);
 
-	protected abstract E extractFromRow(Elements columns);
-
 	protected abstract Elements getTableRows(Document document);
+
+	protected abstract E extractFromRow(Elements columns);
 
 	protected String extractLeafText(Elements elements, int index) {
 		return extractLeafText(elements.get(index));

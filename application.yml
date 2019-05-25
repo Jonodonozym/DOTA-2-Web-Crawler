@@ -1,0 +1,21 @@
+spring:
+  jpa:
+    database-platform: jdz.D2WC.entity.SQLiteDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+      cache.use_second_level_cache: false
+      use_query_cache: false
+  datasource:
+    url: jdbc:sqlite:file:DOTA2Data.db?cache=shared
+    username: bakerjaid
+    password: jaidencolebaker
+    driverClassName: org.sqlite.JDBC
+    maxActive: 10
+    maxIdle: 5
+    minIdle: 2
+    initialSize: 5
+    removeAbandoned: true
+  jackson:
+    serialization:
+      fail-on-empty-beans: false
