@@ -12,10 +12,13 @@ import org.jsoup.select.Elements;
 import jdz.D2WC.entity.enums.Lane;
 import jdz.D2WC.entity.player.PlayerSummary;
 import jdz.D2WC.entity.player.PlayerSummary.PlayerSummaryBuilder;
-import jdz.D2WC.fetch.abstractClasses.HTMLDocumentParser;
+import jdz.D2WC.fetch.interfaces.PlayerSummaryFetcher;
+import jdz.D2WC.fetch.util.HTMLDocumentParser;
 
-public class PlayerFetcher extends HTMLDocumentParser {
-	public PlayerSummary fetchSummary(long playerID) throws IOException {
+public class PlayerSummaryDotaBuff extends HTMLDocumentParser implements PlayerSummaryFetcher {
+	
+	@Override
+	public PlayerSummary fromPlayerID(long playerID) throws IOException {
 		PlayerSummaryBuilder builder = PlayerSummary.builder();
 
 		builder.playerID(playerID);
@@ -85,8 +88,6 @@ public class PlayerFetcher extends HTMLDocumentParser {
 		double winRatio = Double.parseDouble(row.child(5).text().replaceAll("%", "")) / 100.0;
 
 		int wins = (int) Math.round(matches * winRatio);
-		builder.gamesWon6Months(wins);
-		builder.gamesLost6Months(matches - wins);
 	}
 
 	private void setLanesSummary(PlayerSummaryBuilder builder, Document document) {
@@ -99,7 +100,5 @@ public class PlayerFetcher extends HTMLDocumentParser {
 			recent.put(lane,
 					row == null ? 0 : Integer.parseInt(row.child(4).text().replace(",", "").replace("-", "0")));
 		}
-		builder.matchLane(all);
-		builder.matchLane6Months(recent);
 	}
 }

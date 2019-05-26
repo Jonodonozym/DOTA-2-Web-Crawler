@@ -9,20 +9,31 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-import jdz.D2WC.fetch.abstractClasses.HTMLDocumentParser;
-import jdz.D2WC.fetch.abstractClasses.HTMLTableParser;
+import jdz.D2WC.fetch.util.HTMLDocumentParser;
+import jdz.D2WC.fetch.util.HTMLTableParser;
 
-public class PlayerMatchHistory extends HTMLDocumentParser {
+public class PlayerMatchHistoryDotaBuff extends HTMLDocumentParser {
+	public static interface MatchIDRunnable {
+		public void run(long playerID);
+	}
+
+	public void forEachMatchID(long playerID, int maxMatches, MatchIDRunnable runnable) throws IOException {
+		String profileURL = "https://www.dotabuff.com/players/" + playerID;
+		int pages = getNumPages(profileURL);
+		for (int page = 1; page < pages; page++)
+			for (long matchID : parser.getAll(profileURL, page)) {
+				if (maxMatches == 0)
+					return;
+				runnable.run(matchID);
+				maxMatches--;
+			}
+	}
+
 	private final TableParser parser = new TableParser();
 
 	public List<Long> getMatchIDs(long playerID) throws IOException {
 		List<Long> matchIDs = new ArrayList<>();
-
-		String profileURL = "https://www.dotabuff.com/players/" + playerID;
-		int pages = getNumPages(profileURL);
-		for (int page = 1; page < pages; page++)
-			matchIDs.addAll(parser.getAll(profileURL, page));
-
+		forEachMatchID(playerID, -1, (e) -> matchIDs.add(e));
 		return matchIDs;
 	}
 

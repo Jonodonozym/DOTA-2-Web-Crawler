@@ -10,9 +10,10 @@ import org.jsoup.nodes.Element;
 
 import jdz.D2WC.entity.hero.Hero;
 import jdz.D2WC.entity.hero.Role;
-import jdz.D2WC.fetch.abstractClasses.HTMLDocumentParser;
+import jdz.D2WC.fetch.interfaces.HeroesFetcher;
+import jdz.D2WC.fetch.util.HTMLDocumentParser;
 
-public class HerosFetcher extends HTMLDocumentParser {
+public class HeroesDotaBuff extends HTMLDocumentParser implements HeroesFetcher {
 	public List<String> getHeroNames() throws IOException {
 		List<String> heroes = new ArrayList<>();
 		Document document = getDocument("https://www.dotabuff.com/heroes");
@@ -39,7 +40,7 @@ public class HerosFetcher extends HTMLDocumentParser {
 		String html = headerContent.html();
 		String name = html.substring(0, html.indexOf('<'));
 		String roles = html.substring(html.indexOf('>') + 1, html.lastIndexOf('<'));
-		return new Hero(name, parseRoles(roles));
+		return new Hero(-1, name, parseRoles(roles));
 	}
 
 	private List<Role> parseRoles(String roleString) {

@@ -2,114 +2,93 @@
 package jdz.D2WC;
 
 import java.util.Collection;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import jdz.D2WC.entity.hero.Hero;
 import jdz.D2WC.entity.hero.HeroRepository;
-import jdz.D2WC.entity.match.MatchRepository;
+import jdz.D2WC.entity.matchStats.MatchStatsRepository;
+import jdz.D2WC.entity.matchStats.PlayerMatchStats;
 import jdz.D2WC.entity.player.PlayerRepository;
 import jdz.D2WC.entity.player.PlayerSummary;
-import jdz.D2WC.fetch.dotabuff.HerosFetcher;
-import jdz.D2WC.fetch.dotabuff.MatchFetcher;
-import jdz.D2WC.fetch.dotabuff.PlayerFetcher;
-import jdz.D2WC.fetch.dotabuff.PlayerMatchHistory;
-import jdz.D2WC.fetch.dotabuff.TopPlayersList;
+import jdz.D2WC.fetch.dotabuff.LeaderboardDotaBuff;
+import jdz.D2WC.fetch.dotabuff.PlayerSummaryDotaBuff;
+import jdz.D2WC.fetch.interfaces.HeroesFetcher;
+import jdz.D2WC.fetch.interfaces.Leaderboard;
+import jdz.D2WC.fetch.interfaces.PlayerMatchStatsFetcher;
+import jdz.D2WC.fetch.interfaces.PlayerSummaryFetcher;
+import jdz.D2WC.fetch.opendota.HeroesOpenDota;
+import jdz.D2WC.fetch.opendota.PlayerMatchStatsOpenDota;
 
 @Component
 public class WebCrawlerTask {
 	@Autowired private HeroRepository heroRepo;
 	@Autowired private PlayerRepository playerSummaryRepo;
-	@Autowired private MatchRepository matchRepo;
+	@Autowired private MatchStatsRepository matchStatsRepo;
 
-	private final HerosFetcher heroesFetcher = new HerosFetcher();
-	private final TopPlayersList topPlayersFetcher = new TopPlayersList();
-	private final PlayerFetcher playerFetcher = new PlayerFetcher();
-	private final PlayerMatchHistory playerMatchHistoryFetcher = new PlayerMatchHistory();
-	private final MatchFetcher matchFetcher = new MatchFetcher();
+	@Value("${skip-leaderboard}") private boolean skipLeaderboard;
+
+	private final HeroesFetcher heroesFetcher = new HeroesOpenDota();
+	private final Leaderboard leaderboard = new LeaderboardDotaBuff();
+	private final PlayerSummaryFetcher playerFetcher = new PlayerSummaryDotaBuff();
+	private final PlayerMatchStatsFetcher matchStatsFetcher = new PlayerMatchStatsOpenDota();
 
 	private final Logger logger = LoggerFactory.getLogger("DOTA2");
 
 	public void runTask() {
-
-		fetchHeroData();
-		fetchTopPlayerSummaries();
+		if (!skipLeaderboard) {
+			fetchHeroData();
+			fetchTopPlayerSummaries();
+		}
 
 		while (true)
 			repeatUntilNoError(() -> {
-				downloadPlayerMatches(playerSummaryRepo.getAllPlayerIDWhereMatchesNotFetched());
-				fetchPlayerSummaries(getUnfetchedPlayersFromMatchData());
+				fetchPlayerData(getUnfetchedPlayersFromMatchData());
 			});
 	}
 
 	private void fetchHeroData() {
 		repeatUntilNoError(() -> {
-			List<String> heroNames = heroesFetcher.getHeroNames();
-			Set<Hero> dbHeroes = new HashSet<>(heroRepo.findAll());
-			heroNames.removeIf((e) -> dbHeroes.contains(new Hero(e, null)));
-			heroRepo.saveAll(heroesFetcher.getAllHeroes(heroNames));
+			heroRepo.saveAll(heroesFetcher.getAllHeroes());
 			heroRepo.flush();
 		});
 	}
 
 	private void fetchTopPlayerSummaries() {
 		long time = System.currentTimeMillis();
-		repeatUntilNoError(() -> topPlayersFetcher.forEachPlayerID((playerID) -> {
+		repeatUntilNoError(() -> leaderboard.forEachPlayerByMMR((playerID) -> {
 			if (!playerSummaryRepo.existsById(playerID))
 				repeatUntilNoError(() -> {
-					playerSummaryRepo.save(playerFetcher.fetchSummary(playerID));
+					playerSummaryRepo.save(playerFetcher.fromPlayerID(playerID));
 					playerSummaryRepo.flush();
 				});
 		}));
-		logger.info(String.format("downloaded summaries for top players (%d ms)",System.currentTimeMillis()-time));
+		logger.info(String.format("downloaded summaries for top players (%d ms)", System.currentTimeMillis() - time));
 
 	}
 
-	private void fetchPlayerSummaries(Collection<Long> playerIDs) {
+	private void fetchPlayerData(Collection<Long> playerIDs) {
 		long time = System.currentTimeMillis();
 		for (Long playerID : playerIDs)
 			repeatUntilNoError(() -> {
-				playerSummaryRepo.save(playerFetcher.fetchSummary(playerID));
+				PlayerSummary playerSummary = playerFetcher.fromPlayerID(playerID);
+				List<PlayerMatchStats> stats = matchStatsFetcher.forPlayerID(playerID, -1);
+				matchStatsRepo.saveAll(stats);
+				matchStatsRepo.flush();
+				playerSummaryRepo.save(playerSummary);
 				playerSummaryRepo.flush();
 			});
-		logger.info(String.format("downloaded summaries for %d players (%d ms)", playerIDs.size(),
+		logger.info(String.format("downloaded data for %d players (%d ms)", playerIDs.size(),
 				System.currentTimeMillis() - time));
 	}
 
-	private void downloadPlayerMatches(Collection<Long> playerIDs) {
-		for (long playerID : playerIDs)
-			repeatUntilNoError(() -> {
-				long time = System.currentTimeMillis();
-				List<Long> matches = playerMatchHistoryFetcher.getMatchIDs(playerID);
-				downloadMatches(matches);
-
-				PlayerSummary summary = playerSummaryRepo.getOne(playerID);
-				summary.setFetchedMatches(true);
-				playerSummaryRepo.save(summary);
-				playerSummaryRepo.flush();
-
-				logger.info(String.format("downloaded %d matches for player %d (%d ms)", matches.size(), playerID,
-						System.currentTimeMillis() - time));
-			});
-	}
-
-	private void downloadMatches(Collection<Long> matchIDs) {
-		for (long matchID : matchIDs)
-			if (!matchRepo.existsById(matchID))
-				repeatUntilNoError(() -> {
-					matchRepo.save(matchFetcher.getMatchData(matchID));
-					matchRepo.flush();
-				});
-	}
-
 	private Collection<Long> getUnfetchedPlayersFromMatchData() {
-		Set<Long> allPlayers = matchRepo.getAllPlayerIDs();
+		Set<Long> allPlayers = matchStatsRepo.getAllPlayerIDs();
 		allPlayers.removeAll(playerSummaryRepo.getAllPlayerIDs());
 		return allPlayers;
 	}

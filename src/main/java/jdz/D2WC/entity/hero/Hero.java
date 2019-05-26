@@ -20,7 +20,8 @@ import lombok.ToString;
 @Getter
 @ToString(of = { "name" })
 public class Hero {
-	@Id private String name;
+	@Id private int id;
+	private String name;
 	@ElementCollection @Enumerated(EnumType.ORDINAL) private List<Role> roles;
 
 	@Override

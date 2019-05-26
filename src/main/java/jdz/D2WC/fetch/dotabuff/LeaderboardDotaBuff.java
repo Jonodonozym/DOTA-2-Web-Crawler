@@ -2,33 +2,22 @@
 package jdz.D2WC.fetch.dotabuff;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
-import jdz.D2WC.fetch.abstractClasses.HTMLDocumentParser;
-import jdz.D2WC.fetch.abstractClasses.HTMLTableParser;
+import jdz.D2WC.fetch.interfaces.Leaderboard;
+import jdz.D2WC.fetch.util.HTMLDocumentParser;
+import jdz.D2WC.fetch.util.HTMLTableParser;
 
-public class TopPlayersList extends HTMLDocumentParser {
-	public static interface PlayerIDRunnable {
-		public void run(long playerID);
-	}
-
+public class LeaderboardDotaBuff extends HTMLDocumentParser implements Leaderboard {
 	private final LeaderboardTableParser tableParser = new LeaderboardTableParser();
 
-	public void forEachPlayerID(PlayerIDRunnable runnable) throws IOException {
+	public void forEachPlayerByMMR(PlayerIDRunnable runnable) throws IOException {
 		int pages = getNumPages(getDocument("https://www.dotabuff.com/players/leaderboard"));
-		for (int page = 0; page < pages; page++)
+		for (int page = pages; page > 0; page--)
 			for (long playerID: tableParser.getAll(page))
 				runnable.run(playerID);
-	}
-
-	public List<Long> getTopPlayerIDs() throws IOException {
-		List<Long> players = new ArrayList<>();
-		forEachPlayerID((player) -> players.add(player));
-		return players;
 	}
 
 	private int getNumPages(Document document) {

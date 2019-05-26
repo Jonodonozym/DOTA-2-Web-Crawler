@@ -1,5 +1,5 @@
 
-package jdz.D2WC.fetch.abstractClasses;
+package jdz.D2WC.fetch.util;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -9,6 +9,4 @@ import org.springframework.data.jpa.repository.Query;
 public interface PlayerRepository extends JpaRepository<PlayerSummary, Long> {
 	@Query("select p.playerID from #{#entityName} p")
 	Set<Long> getAllPlayerIDs();
-	@Query("select p.playerID from #{#entityName} p where p.fetchedMatches = false")
-	Set<Long> getAllPlayerIDWhereMatchesNotFetched();
 }

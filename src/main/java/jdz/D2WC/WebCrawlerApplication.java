@@ -1,5 +1,8 @@
 package jdz.D2WC;
 
+import java.io.File;
+import java.net.URL;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,6 +17,10 @@ public class WebCrawlerApplication {
 	@Autowired Environment env;
 
 	public static void main(String[] args) {
+		URL mySource = WebCrawlerApplication.class.getProtectionDomain().getCodeSource().getLocation();
+		File rootFolder = new File(mySource.getPath());
+		System.setProperty("app.root", rootFolder.getAbsolutePath());
+		
 		ApplicationContext context = SpringApplication.run(WebCrawlerApplication.class, args);
 		context.getBean(WebCrawlerTask.class).runTask();
 	}
