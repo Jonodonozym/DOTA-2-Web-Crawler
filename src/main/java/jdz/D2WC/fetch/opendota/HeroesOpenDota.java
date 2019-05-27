@@ -20,7 +20,7 @@ public class HeroesOpenDota extends JSONListDataParser.RootArray<Hero> implement
 
 	@Override
 	protected String getPage(Object... state) {
-		return OpenDotaAPI.URL + "heroes";
+		return OpenDotaAPI.URL() + "heroes";
 	}
 
 	@Override

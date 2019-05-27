@@ -12,6 +12,9 @@ import org.springframework.context.support.PropertySourcesPlaceholderConfigurer;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.FileSystemResource;
 
+import jdz.D2WC.tasks.LeaderboardTask;
+import jdz.D2WC.tasks.RecursiveTask;
+
 @SpringBootApplication
 public class WebCrawlerApplication {
 	@Autowired Environment env;
@@ -20,9 +23,20 @@ public class WebCrawlerApplication {
 		URL mySource = WebCrawlerApplication.class.getProtectionDomain().getCodeSource().getLocation();
 		File rootFolder = new File(mySource.getPath());
 		System.setProperty("app.root", rootFolder.getAbsolutePath());
-		
+
 		ApplicationContext context = SpringApplication.run(WebCrawlerApplication.class, args);
-		context.getBean(WebCrawlerTask.class).runTask();
+
+		if (leaderboardMode(args))
+			context.getBean(LeaderboardTask.class).fetchLeaderboardData();
+		else
+			context.getBean(RecursiveTask.class).fetchPlayerData();
+	}
+
+	private static boolean leaderboardMode(String[] args) {
+		if (args.length == 0)
+			return true;
+		else
+			return args[0].equals("0");
 	}
 
 	@Bean

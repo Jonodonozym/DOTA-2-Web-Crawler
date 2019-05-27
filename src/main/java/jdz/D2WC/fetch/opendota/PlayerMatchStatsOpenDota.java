@@ -42,7 +42,7 @@ public class PlayerMatchStatsOpenDota implements PlayerMatchStatsFetcher {
 		protected String getPage(Object... state) {
 			this.state = state;
 			String limit = ((int) state[1]) > 0 ? "?limit=" + state[1] : "";
-			return OpenDotaAPI.URL + "players/" + state[0] + "/matches" + limit;
+			return OpenDotaAPI.URL() + "players/" + state[0] + "/matches" + limit;
 		}
 
 		@Override
@@ -54,7 +54,7 @@ public class PlayerMatchStatsOpenDota implements PlayerMatchStatsFetcher {
 	private class MatchParser extends JSONListDataParser.RootObject<PlayerMatchStats> {
 		@Override
 		protected String getPage(Object... state) {
-			return OpenDotaAPI.URL + "https://api.opendota.com/api/matches/" + state[0];
+			return OpenDotaAPI.URL() + "https://api.opendota.com/api/matches/" + state[0];
 		}
 
 		@Override

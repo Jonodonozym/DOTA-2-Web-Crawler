@@ -84,10 +84,10 @@ public class PlayerSummaryDotaBuff extends HTMLDocumentParser implements PlayerS
 	}
 
 	private void setRecentWinsLosses(PlayerSummaryBuilder builder, Element row) {
-		int matches = Integer.parseInt(row.child(4).text().replace(",", "").replaceAll("-", "0"));
-		double winRatio = Double.parseDouble(row.child(5).text().replaceAll("%", "")) / 100.0;
-
-		int wins = (int) Math.round(matches * winRatio);
+//		int matches = Integer.parseInt(row.child(4).text().replace(",", "").replaceAll("-", "0"));
+//		double winRatio = Double.parseDouble(row.child(5).text().replaceAll("%", "")) / 100.0;
+//
+//		int wins = (int) Math.round(matches * winRatio);
 	}
 
 	private void setLanesSummary(PlayerSummaryBuilder builder, Document document) {
