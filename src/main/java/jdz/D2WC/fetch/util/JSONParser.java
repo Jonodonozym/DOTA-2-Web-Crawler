@@ -14,14 +14,18 @@ import java.nio.charset.Charset;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.json.JSONException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class JSONParser<T> {
+	private final Logger logger = LoggerFactory.getLogger("DOTA2");
 	public static final int API_WAIT = 1200;
 
 	protected abstract T parse(String source);
 
 	protected T readJSONFromUrl(String url) throws IOException, JSONException {
 		waitIfTooFast(API_WAIT);
+		logger.info("Connecting to: " + url);
 		InputStream is = getInputStream(url);
 		try {
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));

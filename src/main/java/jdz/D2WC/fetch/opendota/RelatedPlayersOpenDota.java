@@ -11,6 +11,7 @@ import org.json.JSONObject;
 
 import jdz.D2WC.fetch.interfaces.RelatedPlayersFetcher;
 import jdz.D2WC.fetch.util.JSONListDataParser;
+import jdz.D2WC.fetch.util.RateLimiter;
 
 public class RelatedPlayersOpenDota extends JSONListDataParser.RootArray<List<Long>> implements RelatedPlayersFetcher {
 	@Override
@@ -19,6 +20,8 @@ public class RelatedPlayersOpenDota extends JSONListDataParser.RootArray<List<Lo
 		for (List<Long> sublist : getAll(playerID))
 			players.addAll(sublist);
 		players.remove(playerID);
+		if (players.size() > 500)
+			RateLimiter.waitIfTooFast(5000);
 		return players;
 	}
 
@@ -31,9 +34,9 @@ public class RelatedPlayersOpenDota extends JSONListDataParser.RootArray<List<Lo
 	protected List<Long> parseRow(JSONObject object) {
 		List<Long> players = new ArrayList<>();
 		for (String key : object.getJSONObject("heroes").keySet()) {
-			Object id = object.getJSONObject("heroes").getJSONObject(key).get("account_id");
-			if (id instanceof Integer)
-				players.add(((Integer) id).longValue());
+			JSONObject hero = object.getJSONObject("heroes").getJSONObject(key);
+			if (hero.has("account_id") && hero.get("account_id") instanceof Number)
+				players.add(hero.getLong("account_id"));
 		}
 		return players;
 	}

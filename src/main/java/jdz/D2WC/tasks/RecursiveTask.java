@@ -14,8 +14,8 @@ import jdz.D2WC.fetch.opendota.RelatedPlayersOpenDota;
 
 @Component
 public class RecursiveTask extends AbstractTask {
-	private final RandomPlayerFetcher randomPlayer = new RandomPlayerOpenDota(matchStatsFetcher, playerFetcher);
 	private final RelatedPlayersFetcher relatedPlayers = new RelatedPlayersOpenDota();
+	private final RandomPlayerFetcher randomPlayer = new RandomPlayerOpenDota(matchStatsFetcher, playerFetcher, relatedPlayers);
 
 	public void fetchPlayerData(int depth) {
 		if (depth == -1)
