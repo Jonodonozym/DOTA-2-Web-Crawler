@@ -6,9 +6,10 @@ import org.springframework.stereotype.Component;
 @Component
 public class LeaderboardTask extends AbstractTask{
 	public void fetchLeaderboardData() {
+		logger.info("Fetching Leaderboard Network");
 		fetchHeroData();
 		fetchTopPlayerSummaries();
-		fetchPlayerSummaryAndMatches(getUnfetchedPlayersSummariesFromMatchStatsRepo());
+		fetchPlayerSummaryAndMatches(getUnfetchedPlayersSummariesFromMatchStatsRepo(), 0);
 	}
 
 	private void fetchTopPlayerSummaries() {

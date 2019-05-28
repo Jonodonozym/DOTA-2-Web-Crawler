@@ -35,7 +35,7 @@ public class RandomPlayerOpenDota extends JSONListDataParser.RootArray<Long> imp
 	}
 
 	private boolean isSuitableRootPlayer(PlayerSummary player) {
-		return player.getPlayerID() > 0 && player.getGames() > 1000;
+		return player.getPlayerID() > 0 && player.getGames() > 1000 && player.getMMR() > 1800 && player.getMMR() < 3800;
 	}
 
 	@Override

@@ -27,8 +27,8 @@ public class HeroesOpenDota extends JSONListDataParser.RootArray<Hero> implement
 	protected Hero parseRow(JSONObject object) {
 		List<Role> roles = new ArrayList<>();
 		roles.add(Role.valueOf(object.getString("attack_type").toUpperCase()));
-		for (String role : (String[]) object.get("roles"))
-			roles.add(Role.valueOf(role.toUpperCase()));
+		for (Object role : object.getJSONArray("roles"))
+			roles.add(Role.valueOf(((String)role).toUpperCase()));
 		return new Hero(object.getInt("id"), object.getString("localized_name"), roles);
 	}
 

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Builder.Default;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.ToString;
 
 @NoArgsConstructor
@@ -23,7 +24,8 @@ public class PlayerSummary {
 	private int mmrStdDev;
 	private int gamesWon;
 	private int gamesLost;
-	@Default private boolean matchPlayerFetched = false;
+	@Setter @Default private boolean matchPlayerFetched = false;
+	@Setter @Default private int networkDepth = 0;
 	
 	public int getGames() {
 		return gamesWon + gamesLost;

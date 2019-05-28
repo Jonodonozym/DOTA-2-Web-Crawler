@@ -14,10 +14,12 @@ public class PlayerSummaryOpenDota extends JSONParser<JSONObject> implements Pla
 
 	@Override
 	public PlayerSummary fromPlayerID(long playerID) throws IOException {
-		JSONObject MMREstimate = readJSONFromUrl(OpenDotaAPI.URL() + "players/" + playerID).getJSONObject("mmr_estimate");
+		JSONObject MMREstimate = readJSONFromUrl(OpenDotaAPI.URL() + "players/" + playerID)
+				.getJSONObject("mmr_estimate");
 		Pair<Integer, Integer> winLoss = getWinLoss(playerID);
-		return new PlayerSummary(playerID, MMREstimate.getInt("estimate"), MMREstimate.getInt("stdDev"),
-				winLoss.getKey(), winLoss.getValue(), false);
+		return new PlayerSummary(playerID, MMREstimate.getInt("estimate"),
+				MMREstimate.has("stdDev") ? MMREstimate.getInt("stdDev") : 0, winLoss.getKey(), winLoss.getValue(),
+				false, 0);
 	}
 
 	private Pair<Integer, Integer> getWinLoss(long playerID) throws IOException {

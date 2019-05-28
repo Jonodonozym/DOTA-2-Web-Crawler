@@ -29,14 +29,13 @@ public class WebCrawlerApplication {
 		if (leaderboardMode(args))
 			context.getBean(LeaderboardTask.class).fetchLeaderboardData();
 		else
-			context.getBean(RecursiveTask.class).fetchPlayerData();
+			context.getBean(RecursiveTask.class).fetchPlayerData(Integer.parseInt(args[1]));
 	}
 
 	private static boolean leaderboardMode(String[] args) {
 		if (args.length == 0)
 			return true;
-		else
-			return args[0].equals("0");
+		return args[0].endsWith("0");
 	}
 
 	@Bean

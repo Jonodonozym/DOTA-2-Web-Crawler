@@ -16,13 +16,13 @@ import jdz.D2WC.entity.matchStats.PlayerMatchStats;
 import jdz.D2WC.entity.player.PlayerRepository;
 import jdz.D2WC.entity.player.PlayerSummary;
 import jdz.D2WC.fetch.dotabuff.LeaderboardDotaBuff;
-import jdz.D2WC.fetch.dotabuff.PlayerSummaryDotaBuff;
 import jdz.D2WC.fetch.interfaces.HeroesFetcher;
 import jdz.D2WC.fetch.interfaces.Leaderboard;
 import jdz.D2WC.fetch.interfaces.PlayerMatchStatsFetcher;
 import jdz.D2WC.fetch.interfaces.PlayerSummaryFetcher;
 import jdz.D2WC.fetch.opendota.HeroesOpenDota;
 import jdz.D2WC.fetch.opendota.PlayerMatchStatsOpenDota;
+import jdz.D2WC.fetch.opendota.PlayerSummaryOpenDota;
 
 public class AbstractTask {
 	@Autowired protected HeroRepository heroRepo;
@@ -31,7 +31,7 @@ public class AbstractTask {
 
 	protected final HeroesFetcher heroesFetcher = new HeroesOpenDota();
 	protected final Leaderboard leaderboard = new LeaderboardDotaBuff();
-	protected final PlayerSummaryFetcher playerFetcher = new PlayerSummaryDotaBuff();
+	protected final PlayerSummaryFetcher playerFetcher = new PlayerSummaryOpenDota();
 	protected final PlayerMatchStatsFetcher matchStatsFetcher = new PlayerMatchStatsOpenDota();
 
 	protected final Logger logger = LoggerFactory.getLogger("DOTA2");
@@ -66,12 +66,13 @@ public class AbstractTask {
 		public void run() throws IOException;
 	}
 
-	protected void fetchPlayerSummaryAndMatches(Collection<Long> playerIDs) {
+	protected void fetchPlayerSummaryAndMatches(Collection<Long> playerIDs, int depth) {
 		long time = System.currentTimeMillis();
 		for (Long playerID : playerIDs)
 			repeatUntilNoError(() -> {
 				PlayerSummary playerSummary = playerFetcher.fromPlayerID(playerID);
-				List<PlayerMatchStats> stats = matchStatsFetcher.forPlayerID(playerID, -1);
+				playerSummary.setNetworkDepth(depth);
+				List<PlayerMatchStats> stats = matchStatsFetcher.forPlayerID(playerID);
 				matchStatsRepo.saveAll(stats);
 				matchStatsRepo.flush();
 				playerSummaryRepo.save(playerSummary);

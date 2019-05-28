@@ -7,7 +7,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public enum Lane {
-	ROAMING("Roaming"), OFF("Off Lane"), SAFE("Safe Lane"), MID("Mid Lane"), JUNGLE("Jungle"),
+	SAFE("Safe Lane"), MID("Mid Lane"), OFF("Off Lane"), JUNGLE("Jungle"), ROAMING("Roaming"),
 	UNKNOWN("Unanalyzed Lane");
 
 	private final String dotabuffLabel;

@@ -10,6 +10,7 @@ import javax.persistence.Entity;
 
 import jdz.D2WC.entity.enums.Lane;
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -17,9 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Getter
 @Entity
-public class PlayerMatchStats implements Serializable {
-	private static final long serialVersionUID = 1954775663036659457L;
-	
+@EqualsAndHashCode(of="id")
+public class PlayerMatchStats {	
 	@EmbeddedId MatchStatsID id;
 	private long playerID;
 	private int heroID;
@@ -30,9 +30,12 @@ public class PlayerMatchStats implements Serializable {
 	private int assists;
 	private long startTime;
 	
+	@NoArgsConstructor
 	@AllArgsConstructor
 	@Embeddable
-	public static class MatchStatsID {
+	@EqualsAndHashCode
+	public static class MatchStatsID implements Serializable {
+		private static final long serialVersionUID = 1954775663036659457L;
 		@Column(name = "match_id") private long matchID;
 		@Column(name = "slot") private int slot;
 	}
