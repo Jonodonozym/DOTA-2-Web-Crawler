@@ -17,11 +17,11 @@ public class PlayerSummaryOpenDota extends JSONParser<JSONObject> implements Pla
 		JSONObject MMREstimate = readJSONFromUrl(OpenDotaAPI.URL() + "players/" + playerID)
 				.getJSONObject("mmr_estimate");
 		if (!MMREstimate.has("estimate"))
-			return new PlayerSummary(playerID, 0, 0, 0, 0, false, 0);
+			return new PlayerSummary(playerID, 0, 0, 0, 0, false);
 		Pair<Integer, Integer> winLoss = getWinLoss(playerID);
 		return new PlayerSummary(playerID, MMREstimate.getInt("estimate"),
 				MMREstimate.has("stdDev") ? MMREstimate.getInt("stdDev") : 0, winLoss.getKey(), winLoss.getValue(),
-				false, 0);
+				false);
 	}
 
 	private Pair<Integer, Integer> getWinLoss(long playerID) throws IOException {
