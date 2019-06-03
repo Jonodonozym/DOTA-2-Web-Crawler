@@ -26,7 +26,10 @@ public class PlayerMatchStatsOpenDota implements PlayerMatchStatsFetcher {
 		for (Lane lane : new Lane[] { Lane.SAFE, Lane.MID, Lane.OFF, Lane.JUNGLE })
 			stats.addAll(playerParser.getAll(playerID, lane));
 		stats.addAll(playerParser.getAll(playerID));
-		return new ArrayList<>(stats);
+
+		List<PlayerMatchStats> statsSorted = new ArrayList<>(stats);
+		statsSorted.sort((a, b) -> (int) (b.getStartTime() - a.getStartTime()));
+		return statsSorted;
 	}
 
 	@Override
@@ -35,21 +38,20 @@ public class PlayerMatchStatsOpenDota implements PlayerMatchStatsFetcher {
 	}
 
 	protected PlayerMatchStats parseRow(JSONObject object, long playerID) {
-		boolean roaming = object.has("is_roaming") && object.get("is_roaming").getClass().equals(Boolean.class)
+		boolean roaming = object.has("is_roaming") && object.get("is_roaming") instanceof Boolean
 				? object.getBoolean("is_roaming")
 				: false;
 		Lane lane = roaming ? Lane.ROAMING
-				: object.has("lane") && object.get("lane").getClass().equals(Integer.class)
-						? Lane.values()[object.getInt("lane")]
+				: object.has("lane") && object.get("lane") instanceof Integer ? Lane.values()[object.getInt("lane")]
 						: Lane.UNKNOWN;
 		return parseRow(object, playerID, lane);
 	}
 
 	protected PlayerMatchStats parseRow(JSONObject object, long playerID, Lane lane) {
 		MatchStatsID id = new MatchStatsID(object.getInt("match_id"), object.getInt("player_slot"));
-		return new PlayerMatchStats(id, playerID, object.getInt("hero_id"), lane, object.getBoolean("radiant_win"),
-				object.getInt("kills"), object.getInt("deaths"), object.getInt("assists"),
-				object.getLong("start_time"));
+		boolean radiantWin = object.get("radiant_win") instanceof Boolean ? object.getBoolean("radiant_win") : false;
+		return new PlayerMatchStats(id, playerID, object.getInt("hero_id"), lane, radiantWin, object.getInt("kills"),
+				object.getInt("deaths"), object.getInt("assists"), object.getLong("start_time"));
 	}
 
 	private class PlayerParser extends JSONListDataParser.RootArray<PlayerMatchStats> {
