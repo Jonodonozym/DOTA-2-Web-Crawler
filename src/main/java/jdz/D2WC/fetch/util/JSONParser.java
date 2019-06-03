@@ -19,7 +19,8 @@ import org.slf4j.LoggerFactory;
 
 public abstract class JSONParser<T> {
 	private final Logger logger = LoggerFactory.getLogger("DOTA2");
-	public static final int API_WAIT = 1200;
+	public static final int API_WAIT = 1500;
+	public static final int WAIT_BLOCKED = 60000;
 
 	protected abstract T parse(String source);
 
@@ -31,6 +32,14 @@ public abstract class JSONParser<T> {
 			BufferedReader rd = new BufferedReader(new InputStreamReader(is, Charset.forName("UTF-8")));
 			String jsonText = readAll(rd);
 			return parse(jsonText);
+		}
+		catch (IOException e) {
+			if (e.getMessage().contains("HTTP response code: 429")) {
+				waitIfTooFast(WAIT_BLOCKED);
+				return readJSONFromUrl(url);
+			}
+			else
+				throw e;
 		}
 		finally {
 			is.close();

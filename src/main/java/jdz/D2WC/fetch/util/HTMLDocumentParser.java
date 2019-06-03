@@ -15,8 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class HTMLDocumentParser {
-	private static final int DEFAULT_WAIT = 2000;
-	private static final int BLOCKED_WAIT = 305000;
+	private static final int DEFAULT_WAIT = 5000;
+	private static final int BLOCKED_WAIT = 610000;
 	
 	private final Logger logger = LoggerFactory.getLogger("DOTA2");
 	private final Random random = new Random();
@@ -25,7 +25,7 @@ public class HTMLDocumentParser {
 		waitIfTooFast((int) (DEFAULT_WAIT * (1 + random.nextDouble())));
 		logger.info("Connecting to: " + page);
 		try {
-			Connection.Response response = loadJSComponents(Jsoup.connect(page).ignoreHttpErrors(true)).timeout(2000)
+			Connection.Response response = loadJSComponents(Jsoup.connect(page).ignoreHttpErrors(true)).timeout(10000)
 					.execute();
 
 			if (response.statusCode() == 200)
