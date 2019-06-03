@@ -3,7 +3,6 @@ package jdz.D2WC.tasks;
 
 import java.io.IOException;
 import java.util.Collection;
-import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -12,9 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import jdz.D2WC.entity.hero.HeroRepository;
 import jdz.D2WC.entity.matchStats.MatchStatsRepository;
-import jdz.D2WC.entity.matchStats.PlayerMatchStats;
 import jdz.D2WC.entity.player.PlayerRepository;
-import jdz.D2WC.entity.player.PlayerSummary;
 import jdz.D2WC.fetch.dotabuff.LeaderboardDotaBuff;
 import jdz.D2WC.fetch.interfaces.HeroesFetcher;
 import jdz.D2WC.fetch.interfaces.Leaderboard;
@@ -66,20 +63,28 @@ public class AbstractTask {
 		public void run() throws IOException;
 	}
 
-	protected void fetchPlayerSummaryAndMatches(Collection<Long> playerIDs, int depth) {
+	protected void fetchPlayerSummaryAndMatches(Collection<Long> playerIDs) {
 		long time = System.currentTimeMillis();
-		for (Long playerID : playerIDs)
-			repeatUntilNoError(() -> {
-				PlayerSummary playerSummary = playerFetcher.fromPlayerID(playerID);
-				playerSummary.setNetworkDepth(depth);
-				List<PlayerMatchStats> stats = matchStatsFetcher.forPlayerID(playerID);
-				matchStatsRepo.saveAll(stats);
-				matchStatsRepo.flush();
-				playerSummaryRepo.save(playerSummary);
-				playerSummaryRepo.flush();
-			});
+		for (Long playerID : playerIDs) {
+			fetchPlayerSummary(playerID);
+			fetchMatchData(playerID);
+		}
 		logger.info(String.format("downloaded data for %d players (%d ms)", playerIDs.size(),
 				System.currentTimeMillis() - time));
+	}
+
+	protected void fetchPlayerSummary(long playerID) {
+		repeatUntilNoError(() -> {
+			playerSummaryRepo.save(playerFetcher.fromPlayerID(playerID));
+			playerSummaryRepo.flush();
+		});
+	}
+
+	protected void fetchMatchData(long playerID) {
+		repeatUntilNoError(() -> {
+			matchStatsRepo.saveAll(matchStatsFetcher.forPlayerID(playerID));
+			matchStatsRepo.flush();
+		});
 	}
 
 	protected Collection<Long> getUnfetchedPlayersSummariesFromMatchStatsRepo() {
