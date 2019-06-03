@@ -11,7 +11,6 @@ import jdz.D2WC.entity.player.PlayerSummary;
 import jdz.D2WC.fetch.interfaces.PlayerMatchStatsFetcher;
 import jdz.D2WC.fetch.interfaces.PlayerSummaryFetcher;
 import jdz.D2WC.fetch.interfaces.RandomPlayerFetcher;
-import jdz.D2WC.fetch.interfaces.RelatedPlayersFetcher;
 import jdz.D2WC.fetch.util.JSONListDataParser;
 import lombok.RequiredArgsConstructor;
 
@@ -19,26 +18,20 @@ import lombok.RequiredArgsConstructor;
 public class RandomPlayerOpenDota extends JSONListDataParser.RootArray<Long> implements RandomPlayerFetcher {
 	private final PlayerMatchStatsFetcher matchFetcher;
 	private final PlayerSummaryFetcher summaryFetcher;
-	private final RelatedPlayersFetcher relatedPlayersFetcher;
 
 	@Override
-	public PlayerSummary getRandom() throws IOException {
+	public PlayerSummary getSuitableRandom(SuitabilityTest test) throws IOException {
 		List<Long> matches = getAll();
 		for (long matchID : matches) {
 			for (PlayerMatchStats stats : matchFetcher.forMatchID(matchID)) {
 				if (stats.getPlayerID() <= 0)
 					continue;
 				PlayerSummary summary = summaryFetcher.fromPlayerID(stats.getPlayerID());
-				if (isSuitableRootPlayer(summary))
+				if (test.test(summary))
 					return summary;
 			}
 		}
-		return getRandom();
-	}
-
-	private boolean isSuitableRootPlayer(PlayerSummary player) throws IOException {
-		return player.getPlayerID() > 0 && player.getGames() > 1000 && player.getMMR() > 1800 && player.getMMR() < 3800
-				&& relatedPlayersFetcher.getRelatedPlayers(player.getPlayerID()).size() > 100;
+		return getSuitableRandom(test);
 	}
 
 	@Override
