@@ -2,7 +2,9 @@
 package jdz.D2WC.fetch.opendota;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import org.json.JSONObject;
 
@@ -22,14 +24,18 @@ public class RandomPlayerOpenDota extends JSONListDataParser.RootArray<Long> imp
 	@Override
 	public PlayerSummary getSuitableRandom(SuitabilityTest test) throws IOException {
 		List<Long> matches = getAll();
+		Collections.shuffle(matches);
 		for (long matchID : matches) {
-			for (PlayerMatchStats stats : matchFetcher.forMatchID(matchID)) {
-				if (stats.getPlayerID() <= 0)
-					continue;
-				PlayerSummary summary = summaryFetcher.fromPlayerID(stats.getPlayerID());
-				if (test.test(summary))
-					return summary;
-			}
+			List<PlayerMatchStats> players = matchFetcher.forMatchID(matchID);
+			players.removeIf((p) -> p.getPlayerID() <= 0);
+
+			if (players.size() == 0)
+				continue;
+
+			PlayerMatchStats randomPlayer = players.get(new Random().nextInt(players.size()));
+			PlayerSummary summary = summaryFetcher.fromPlayerID(randomPlayer.getPlayerID());
+			if (test.test(summary))
+				return summary;
 		}
 		return getSuitableRandom(test);
 	}
